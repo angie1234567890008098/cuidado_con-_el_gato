@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Configuración</title>
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="configuracion.css">
+    <style>
+        .error-message {
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="corner-imge">
+        <a href="confimenu.html"><embed src="flecha.png" alt="regresar"></a>
+    </div>
+    <div class="color-box">
+        <h1>CONFIGURACIÓN</h1>
+        <!-- Mostrar el último ID del usuario -->
+        <p>Tu ID de Usuario: <span id="ultimo-id"></span></p>
+        <!-- Formulario de perfil -->
+        <form id="perfilForm" action="#" method="post" onsubmit="return validateForm()">
+            <label for="userId">ID de Usuario:</label><br>
+            <input type="text" id="userId" name="userId" placeholder="Ingrese el ID del usuario"><br>
+            <label for="nombre">Nombre:</label><br>
+            <input type="text" id="nombre" name="nombre" placeholder="Ingrese su nombre"><br>
+            <span id="name-error" class="error-message">El nombre debe tener entre 3 y 30 caracteres y solo letras.</span><br>
+            <label for="correo">Correo:</label><br>
+            <input type="email" id="correo" name="correo" placeholder="Ingrese su correo electrónico"><br>
+            <span id="email-error" class="error-message">Ingrese un correo electrónico válido.</span><br>
+            <label for="contrasena">Contraseña:</label><br>
+            <input type="password" id="contrasena" name="contrasena" placeholder="Ingrese su contraseña"><br>
+            <span id="password-error" class="error-message">La contraseña debe tener entre 8 y 15 caracteres.</span><br>
+            <label for="dc">Dirección:</label><br>
+            <input type="text" id="dc" name="dc" placeholder="Ingrese su DC"><br>
+            <span id="dc-error" class="error-message">El DC debe tener entre 5 y 30 caracteres.</span><br>
+            <label for="aps">Apellidos:</label><br>
+            <input type="text" id="aps" name="aps" placeholder="Ingrese su APS"><br>
+            <span id="aps-error" class="error-message">El APS debe tener entre 3 y 30 caracteres y solo letras.</span><br>
+            <label for="telefono">Teléfono:</label><br>
+            <input type="text" id="telefono" name="telefono" placeholder="Ingrese su teléfono"><br>
+            <span id="telefono-error" class="error-message">El teléfono debe tener 10 caracteres numéricos.</span><br>
+            <button type="button" onclick="guardarCambios()">Guardar Cambios</button>
+            <button type="button" onclick="verDatosUsuario()">Ver mis datos</button>
+            <button type="button" onclick="limpiarFormulario()">Limpiar Formulario</button>
+            <p id="mensaje" style="display:none; color:green;">Los cambios se han guardado correctamente.</p>
+        </form>
+
+    </div>
+    <script src="script.js"></script>
+    <script>
+        //funcion para obtener el ultiimo id agregado
+        document.addEventListener("DOMContentLoaded", function() {
+            obtenerUltimoId();
+        });
+
+        function obtenerUltimoId() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        document.getElementById("ultimo-id").textContent = response.id;
+                    } else {
+                        console.error("Hubo un error al obtener el último ID.");
+                    }
+                }
+            };
+            xhr.open("GET", "obtener_ultimo_id.php", true);
+            xhr.send();
+        }
+
+        function verDatosUsuario() {
+            var userId = document.getElementById("userId").value;
+            if (userId === "") {
+                alert("Por favor, ingrese un ID de usuario.");
+                return;
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.error) {
+                            alert("ID inexistente.");
+                        } else {
+                            document.getElementById("nombre").value = response.nombre;
+                            document.getElementById("correo").value = response.correo;
+                            document.getElementById("contrasena").value = response.contraseña;
+                            document.getElementById("dc").value = response.dc;
+                            document.getElementById("aps").value = response.aps;
+                            document.getElementById("telefono").value = response.telefono;
+                        }
+                    } else {
+                        console.error("Hubo un error al obtener los datos del usuario.");
+                    }
+                }
+            };
+            xhr.open("POST", "obtener_datos.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("userId=" + userId);
+        }
+
+        function guardarCambios() {
+            if (validateForm()) {
+                var userId = document.getElementById("userId").value;
+                var nombre = document.getElementById("nombre").value;
+                var correo = document.getElementById("correo").value;
+                var contrasena = document.getElementById("contrasena").value;
+                var dc = document.getElementById("dc").value;
+                var aps = document.getElementById("aps").value;
+                var telefono = document.getElementById("telefono").value;
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.status == 200) {
+                            console.log(xhr.responseText);
+                            document.getElementById("mensaje").style.display = "block";
+                            setTimeout(function() {
+                                document.getElementById("mensaje").style.display = "none";
+                            }, 3000); // Oculta el mensaje después de 3 segundos
+                        } else {
+                            console.error("Hubo un error al guardar los cambios.");
+                        }
+                    }
+                };
+                xhr.open("POST", "actualizar_perfil.php", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.send("userId=" + userId + "&nombre=" + nombre + "&correo=" + correo + "&contrasena=" + contrasena + "&dc=" + dc + "&aps=" + aps + "&telefono=" + telefono);
+            }
+        }
+        function validateForm() {
+            var name = document.getElementById("nombre");
+            var email = document.getElementById("correo");
+            var password = document.getElementById("contrasena");
+            var dc = document.getElementById("dc");
+            var aps = document.getElementById("aps");
+            var telefono = document.getElementById("telefono");
+            var isValid = true;
+
+            // Validación del nombre
+            var namePattern = /^[A-Za-zÁÉÍÓÚáéíóú\s]{3,30}$/;
+            if (!namePattern.test(name.value)) {
+                document.getElementById("name-error").innerText = "El nombre debe tener entre 3 y 30 caracteres y solo letras.";
+                document.getElementById("name-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("name-error").style.display = "none";
+            }
+
+            // Validación del correo electrónico
+            var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email.value)) {
+                document.getElementById("email-error").innerText = "Ingrese un correo electrónico válido.";
+                document.getElementById("email-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("email-error").style.display = "none";
+            }
+
+            // Validación de la contraseña
+            if (password.value.length < 8 || password.value.length > 15) {
+                document.getElementById("password-error").innerText = "La contraseña debe tener entre 8 y 15 caracteres.";
+                document.getElementById("password-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("password-error").style.display = "none";
+            }
+
+            // Validación del DC
+            if (dc.value.length < 5 || dc.value.length > 30) {
+                document.getElementById("dc-error").innerText = "El DC debe tener entre 5 y 30 caracteres.";
+                document.getElementById("dc-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("dc-error").style.display = "none";
+            }
+
+            // Validación del APS
+            var apsPattern = /^[A-Za-zÁÉÍÓÚáéíóú\s]{3,30}$/;
+            if (!apsPattern.test(aps.value)) {
+                document.getElementById("aps-error").innerText = "El APS debe tener entre 3 y 30 caracteres y solo letras.";
+                document.getElementById("aps-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("aps-error").style.display = "none";
+            }
+
+            // Validación del teléfono
+            var telefonoPattern = /^[0-9]{10}$/;
+            if (!telefonoPattern.test(telefono.value)) {
+                document.getElementById("telefono-error").innerText = "El teléfono debe tener 10 caracteres numéricos.";
+                document.getElementById("telefono-error").style.display = "block";
+                isValid = false;
+            } else {
+                document.getElementById("telefono-error").style.display = "none";
+            }
+
+            return isValid;
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("userId").value = "";
+            document.getElementById("nombre").value = "";
+            document.getElementById("correo").value = "";
+            document.getElementById("contrasena").value = "";
+            document.getElementById("dc").value = "";
+            document.getElementById("aps").value = "";
+            document.getElementById("telefono").value = "";
+
+            // Ocultar mensajes de error y mensaje de guardado exitoso
+            var errorMessages = document.getElementsByClassName("error-message");
+            for (var i = 0; i < errorMessages.length; i++) {
+                errorMessages[i].style.display = "none";
+            }
+            document.getElementById("mensaje").style.display = "none";
+        }
+    </script>
+</body>
+</html>

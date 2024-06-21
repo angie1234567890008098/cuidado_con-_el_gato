@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Cuenta de Usuario</title>
+    <style>
+         body{/*cuerpo de la interfaz*/
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            margin: 0%;
+            padding: 0%;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            background-size: cover;
+            background-image: url('por si.jpg');/*fondo*/            
+            background-repeat: no-repeat;/*ajustar el fondo*/
+            background-attachment: fixed;
+            background-position: center;
+           text-align: center;
+           align-items: center;
+           color:#ffffff;
+        }
+        .color-box{/*caja de color*/
+          
+          background-color: #000000bb;             
+           color: #fbf8f8;
+          padding: 20px;
+          border-radius: 10px ;
+          box-shadow: 0 4px 8px #0a192b;
+          text-align: center;
+      
+          width: 500px;
+          height: 600px;
+          max-width: 100%;
+
+
+      }
+      h1{/*titulo*/
+          text-align: center;
+          size: 40x;
+          font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+
+      }
+      label{/*diseño de labels*/
+          text-align: center;
+          color: #ffffff;
+          background-color: #070707d2;
+          border-radius: 3px;
+
+      }
+      button{ /*diseño de los botones*/
+          color: #ffffff;
+          background-color: #000000e8;
+          text-align: center;
+          justify-content: center;
+      }
+      .posicion-relativa{ /*posicion de la imagen*/
+          position: absolute;
+          right:15cm;
+          top: 7cm;
+          left: 22cm;
+      
+
+      }
+      input{/*diseño de los input*/
+          color:#ffffff9e;
+          background-color: #623971;
+          text-align: left;
+          border-radius: 10px;
+          width: 7cm;
+          height: 0.5cm;
+          box-shadow: none;
+      }
+      .corner-imge{/*diseño de imagenes*/
+          position: absolute;
+          top: 0;
+          left: 0;
+          size: 2cm;
+          width: 2cm;
+          height: 2cm;
+          }
+    </style>
+</head>
+<body>
+    <div class="corner-imge">
+  
+        <a href="confimenu.html"><embed src="flecha.png" alt="regresar"></a>
+    </div>
+    <div class="color-box">
+
+    <h1>Eliminar Cuenta de Usuario</h1>
+    <p>Su ID de Usuario: <span id="ultimoId"></span></p>
+    <form id="eliminarForm" onsubmit="return validarEliminar(event)">
+        <label for="userId">ID de Usuario:</label><br>
+        <input type="number" id="userId" name="userId" placeholder="Ingrese el ID del usuario a eliminar su cuenta" min="1" required><br><br>
+        <button type="submit">Eliminar Cuenta</button>
+    </form>
+</div>
+    <script>
+        // Función para obtener y mostrar el último ID de usuario
+        function obtenerUltimoId() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        var ultimoId = response.ultimoId;
+                        document.getElementById("ultimoId").textContent = ultimoId;
+                    } else {
+                        console.error("Hubo un error al obtener el último ID.");
+                    }
+                }
+            };
+            xhr.open("GET", "obtener_ultimo_id2.php", true);
+            xhr.send();
+        }
+
+        // Función para validar el formulario antes de eliminar
+        function validarEliminar(event) {
+            event.preventDefault(); // Evitar que el formulario se envíe de manera tradicional
+
+            var userId = document.getElementById("userId").value;
+            var ultimoId = parseInt(document.getElementById("ultimoId").textContent);
+
+            if (isNaN(userId) || userId < 1 || userId > ultimoId) {
+                alert("Ingrese un ID válido.");
+                return false;
+            }
+
+            if (confirm("¿Estás seguro de que deseas eliminar la cuenta del usuario con ID " + userId + "?")) {
+                // Enviar el formulario usando AJAX
+                var formData = new FormData(document.getElementById("eliminarForm"));
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "eliminar_cuenta.php", true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.status == 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            alert(response.message);
+                            // Actualizar el último ID después de la eliminación
+                            obtenerUltimoId();
+                        } else {
+                            console.error("Error en la solicitud.");
+                        }
+                    }
+                };
+                xhr.send(formData);
+            }
+        }
+
+        // Ejecutar la función al cargar la página
+        document.addEventListener("DOMContentLoaded", function() {
+            obtenerUltimoId();
+        });
+    </script>
+</body>
+</html>
